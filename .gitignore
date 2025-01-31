@@ -1,0 +1,52 @@
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+.env.local
+.env.*.local
+
+# Dependencies
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Distribution
+dist/
+build/
+*.egg-info/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+
+# Model files and data
+models/
+data/
+*.pkl
+*.h5
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.pytest_cache/
