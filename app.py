@@ -13,9 +13,9 @@ app = Flask(__name__)
 
 CORS(app, resources={
     r"/*": {
-        "origins": ["https://s5t9scjt-5000.use2.devtunnels.ms"],  # Your tunnel URL
+        "origins": ['*'],  # Your tunnel URL
         "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"],
+        "allow_headers": ["*"],
         "supports_credentials": True
     }
 })
@@ -39,14 +39,17 @@ def chatbot_widget():
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():
-    temp_path = None
     try:
-        audio_file = validate_audio_file(request)
-        temp_path = save_audio_to_temp_file(audio_file)
-        transcribed_text = perform_transcription(temp_path)
-        return jsonify({'text': transcribed_text})
-    except ValueError as e:
-        return jsonify({'error': str(e)}), 400
+        audio_file = request.files['audio']
+        if not audio_file.filename:
+            return jsonify({'error': 'No file selected'}), 400
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
+            audio_file.save(tmp.name)
+            temp_path = tmp.name
+        with sr.AudioFile(temp_path) as source:
+            audio_data = recognizer.record(source)
+            text = recognizer.recognize_google(audio_data)
+            return jsonify({'text': text})
     except sr.UnknownValueError:
         return jsonify({'error': 'Speech could not be understood'}), 400
     except sr.RequestError as e:
@@ -55,35 +58,12 @@ def transcribe_audio():
         app.logger.error(f"Error in /transcribe: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
     finally:
-        cleanup_temp_file(temp_path)
-
-def validate_audio_file(request):
-    if 'audio' not in request.files:
-        raise ValueError('No audio file provided')
-    audio_file = request.files['audio']
-    if not audio_file.filename:
-        raise ValueError('No file selected')
-    return audio_file
-
-def save_audio_to_temp_file(audio_file):
-    with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
-        audio_file.save(tmp.name)
-        return tmp.name
-
-def perform_transcription(file_path):
-    with sr.AudioFile(file_path) as source:
-        audio_data = recognizer.record(source)
-        return recognizer.recognize_google(audio_data)
-
-def cleanup_temp_file(file_path):
-    if file_path and os.path.exists(file_path):
-        try:
-            os.remove(file_path)
-        except OSError as e:
-            app.logger.error(f"Error removing temporary file: {e}")
-
-
-        
+        if temp_path and os.path.exists(temp_path):
+            try:
+                os.remove(temp_path)
+            except OSError as e:
+                app.logger.error(f"Error removing temporary file: {e}")    
+    
 @app.route('/talk', methods=['POST'])
 def text_to_speech():
     data = request.json
