@@ -1,6 +1,6 @@
-(function() {
+(function () {
     // Locate the <script> tag that loaded this file
-    var scriptElement = document.currentScript || (function() {
+    var scriptElement = document.currentScript || (function () {
         // fallback for older browsers
         var scripts = document.getElementsByTagName('script');
         return scripts[scripts.length - 1];
@@ -8,8 +8,8 @@
 
     // Read data attributes from the script element
     var companyId = scriptElement.getAttribute('data-company-id');
-    console.log('companyId: ',companyId);
-    
+    console.log('companyId: ', companyId);
+
     // Create chatbox container
     var chatbox = document.createElement('div');
     chatbox.id = 'chatbot-widget';
@@ -100,7 +100,7 @@
     document.body.appendChild(toggleButton);
 
     // Toggle chatbox visibility
-    toggleButton.addEventListener('click', function() {
+    toggleButton.addEventListener('click', function () {
         if (chatbox.style.display === 'none') {
             chatbox.style.display = 'block';
             toggleButton.style.display = 'block';
@@ -112,16 +112,16 @@
 
     // Handle sending messages
     sendButton.addEventListener('click', sendMessage);
-    inputField.addEventListener('keypress', function(e) {
+    inputField.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             sendMessage();
         }
     });
-    
+
     let mediaRecorder;
     let audioChunks = [];
     let isRecording = false;
-    
+
     micButton.addEventListener('click', () => {
         if (!isRecording) {
             startRecording();
@@ -129,44 +129,112 @@
             stopRecording();
         }
     });
-    
+
     async function startRecording() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
+            // Create an AudioContext to handle the conversion
+            const audioContext = new AudioContext();
+            const mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+            // Create a MediaRecorder with uncompressed audio
+            mediaRecorder = new MediaRecorder(stream, {
+                mimeType: 'audio/webm',
+                audioBitsPerSecond: 16000, // Match common speech recognition sample rate
+            });
+
             audioChunks = [];
-    
             mediaRecorder.ondataavailable = (event) => {
                 audioChunks.push(event.data);
             };
-    
+
             mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav; codecs=opus' });
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+                // Convert to WAV format
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const audioContext = new AudioContext();
+                const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+                // Create WAV file
+                const wavBlob = await convertToWav(audioBuffer);
+
+                // Send to server
                 const formData = new FormData();
-                formData.append('audio', audioBlob);
-            
+                formData.append('audio', wavBlob, 'recording.wav');
+
                 try {
-                    // Fix: Use absolute path and remove incorrect headers
                     const response = await fetch('http://localhost:5000/transcribe', {
                         method: 'POST',
                         body: formData,
                         mode: 'cors',
                     });
                     const data = await response.json();
-                    sendMessage(data.text)
+                    sendMessage(data.text);
                 } catch (error) {
                     console.error('Error:', error);
                 }
             };
-    
+
             mediaRecorder.start();
             isRecording = true;
             micButton.style.backgroundColor = 'red';
+            micButton.style.border = 'none';
+            micButton.style.borderRadius = '10px';
         } catch (err) {
             console.error('Error accessing microphone:', err);
         }
     }
-    
+
+    // Helper function to convert AudioBuffer to WAV
+    function convertToWav(audioBuffer) {
+        const numOfChan = audioBuffer.numberOfChannels;
+        const length = audioBuffer.length * numOfChan * 2;
+        const buffer = new ArrayBuffer(44 + length);
+        const view = new DataView(buffer);
+        const channels = [];
+        let offset = 0;
+        let pos = 0;
+
+        // Write WAV header
+        writeString(view, 0, 'RIFF');
+        view.setUint32(4, 36 + length, true);
+        writeString(view, 8, 'WAVE');
+        writeString(view, 12, 'fmt ');
+        view.setUint32(16, 16, true);
+        view.setUint16(20, 1, true);
+        view.setUint16(22, numOfChan, true);
+        view.setUint32(24, audioBuffer.sampleRate, true);
+        view.setUint32(28, audioBuffer.sampleRate * 2, true);
+        view.setUint16(32, numOfChan * 2, true);
+        view.setUint16(34, 16, true);
+        writeString(view, 36, 'data');
+        view.setUint32(40, length, true);
+
+        // Write PCM data
+        for (let i = 0; i < audioBuffer.numberOfChannels; i++) {
+            channels.push(audioBuffer.getChannelData(i));
+        }
+
+        while (pos < audioBuffer.length) {
+            for (let i = 0; i < numOfChan; i++) {
+                let sample = Math.max(-1, Math.min(1, channels[i][pos]));
+                sample = (0.5 + sample < 0 ? sample * 32768 : sample * 32767) | 0;
+                view.setInt16(44 + offset, sample, true);
+                offset += 2;
+            }
+            pos++;
+        }
+
+        return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+            view.setUint8(offset + i, string.charCodeAt(i));
+        }
+    }
+
     function stopRecording() {
         if (mediaRecorder && isRecording) {
             mediaRecorder.stop();
@@ -193,16 +261,16 @@
 
     async function sendMessage(transcription = null) {
         const message = inputField.value.trim() || transcription;
-        console.log("message:",message);
+        console.log("message:", message);
         if (!message) return; // Exit if message is empty
-        
+
         inputField.value = ''; // Clear input right away
         addMessage('User', message);
-        
+
         try {
             // Get the session sender ID
             const senderId = getSessionSenderId();
-            console.log('random number:',senderId);
+            console.log('random number:', senderId);
 
             // Send the chat message
             const chatResponse = await fetch(`http://127.0.0.1:8000/api/assistant/widget/message/${companyId}`, {
@@ -213,11 +281,11 @@
                     'Origin': window.location.origin, // here we set the origin to the current window location
                 },
                 //credentials: 'include',
-                mode: 'cors', 
+                mode: 'cors',
                 body: JSON.stringify({
                     "sender": senderId,
                     "content": message
-                  })
+                })
             });
 
             if (!chatResponse.ok) {
@@ -225,7 +293,7 @@
                 console.error('Chat request failed:', errorText);
                 throw new Error(`HTTP error! status: ${chatResponse.status}`);
             }
-            
+
             const chatData = await chatResponse.json();
             const botMessage = chatData.reply.response;
 
@@ -249,15 +317,15 @@
             textDiv.className = 'message-text';
             textDiv.textContent = botMessage;
             messageContent.appendChild(textDiv);
-            
+
             // Add audio player
             const audio = document.createElement('audio');
             audio.controls = true;
             audio.src = `data:audio/mp3;base64,${ttsData.audio}`;
             messageContent.appendChild(audio);
-            
+
             addMessage('Bot', messageContent);
-            
+
         } catch (error) {
             console.error('Error:', error);
             addMessage('Bot', 'Sorry, there was an error processing your request.');
@@ -280,9 +348,9 @@
             const textDiv = document.createElement('div');
             messageDiv.appendChild(content);
         } else {
-            messageDiv.innerHTML = '<strong>' + sender + ': </strong>' + content ;
+            messageDiv.innerHTML = '<strong>' + sender + ': </strong>' + content;
         }
-    
+
         chatMessages.appendChild(messageDiv);
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }

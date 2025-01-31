@@ -39,17 +39,24 @@ def chatbot_widget():
 
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():
+    temp_path = None
     try:
+        #print("received audio: ", request)
         audio_file = request.files['audio']
-        if not audio_file.filename:
-            return jsonify({'error': 'No file selected'}), 400
+        
+        allowed_formats = ['.wav', '.aiff', '.flac']
+        if not any(audio_file.filename.lower().endswith(fmt) for fmt in allowed_formats):
+            return jsonify({'error': 'Unsupported audio format. Please use WAV, AIFF, or FLAC'}), 400
+        
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as tmp:
             audio_file.save(tmp.name)
             temp_path = tmp.name
+            
         with sr.AudioFile(temp_path) as source:
             audio_data = recognizer.record(source)
             text = recognizer.recognize_google(audio_data)
             return jsonify({'text': text})
+        
     except sr.UnknownValueError:
         return jsonify({'error': 'Speech could not be understood'}), 400
     except sr.RequestError as e:

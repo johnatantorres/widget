@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cozy Corner Café</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-brown-900 bg-opacity-90 text-white p-4 fixed w-full z-10">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Cozy Corner Café</h1>
+            <div class="space-x-6">
+                <a href="#home" class="hover:text-yellow-200">Home</a>
+                <a href="#menu" class="hover:text-yellow-200">Menu</a>
+                <a href="#about" class="hover:text-yellow-200">About</a>
+                <a href="#contact" class="hover:text-yellow-200">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="h-screen flex items-center justify-center relative">
+        <img src="/api/placeholder/1920/1080" alt="Coffee shop interior" class="absolute w-full h-full object-cover"/>
+        <div class="absolute bg-black bg-opacity-50 w-full h-full"></div>
+        <div class="relative text-center text-white">
+            <h2 class="text-5xl font-bold mb-4">Welcome to Cozy Corner</h2>
+            <p class="text-xl mb-8">Where every cup tells a story</p>
+            <a href="#menu" class="bg-yellow-600 text-white px-8 py-3 rounded-full hover:bg-yellow-700 transition duration-300">View Menu</a>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">Our Menu</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Coffee Item 1 -->
+                <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
+                    <img src="/api/placeholder/400/300" alt="Espresso" class="w-full h-48 object-cover"/>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Classic Espresso</h3>
+                        <p class="text-gray-600 mb-4">Rich and bold, perfect for purists</p>
+                        <p class="text-yellow-600 font-bold">$3.50</p>
+                    </div>
+                </div>
+                <!-- Coffee Item 2 -->
+                <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
+                    <img src="/api/placeholder/400/300" alt="Latte" class="w-full h-48 object-cover"/>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Vanilla Latte</h3>
+                        <p class="text-gray-600 mb-4">Smooth espresso with vanilla and steamed milk</p>
+                        <p class="text-yellow-600 font-bold">$4.50</p>
+                    </div>
+                </div>
+                <!-- Coffee Item 3 -->
+                <div class="bg-gray-50 rounded-lg overflow-hidden shadow-lg">
+                    <img src="/api/placeholder/400/300" alt="Cappuccino" class="w-full h-48 object-cover"/>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-2">Cappuccino</h3>
+                        <p class="text-gray-600 mb-4">Perfect balance of espresso, steamed milk, and foam</p>
+                        <p class="text-yellow-600 font-bold">$4.00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="md:w-1/2">
+                    <img src="/api/placeholder/600/400" alt="Our story" class="rounded-lg shadow-lg"/>
+                </div>
+                <div class="md:w-1/2">
+                    <h2 class="text-4xl font-bold mb-6">Our Story</h2>
+                    <p class="text-gray-600 mb-6">
+                        Founded in 2020, Cozy Corner Café was born from a passion for exceptional coffee and a desire to create a welcoming space for our community. We source our beans from sustainable farms and roast them in-house to ensure the perfect cup every time.
+                    </p>
+                    <p class="text-gray-600">
+                        Our skilled baristas are dedicated to their craft and love sharing their knowledge with our customers. Whether you're a coffee connoisseur or just beginning your coffee journey, we're here to make your experience special.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-20 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">Visit Us</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-gray-50 p-8 rounded-lg">
+                    <h3 class="text-2xl font-bold mb-4">Hours</h3>
+                    <p class="mb-2">Monday - Friday: 7:00 AM - 8:00 PM</p>
+                    <p class="mb-2">Saturday: 8:00 AM - 9:00 PM</p>
+                    <p class="mb-6">Sunday: 8:00 AM - 6:00 PM</p>
+                    
+                    <h3 class="text-2xl font-bold mb-4">Contact</h3>
+                    <p class="mb-2">123 Coffee Street</p>
+                    <p class="mb-2">Portland, OR 97201</p>
+                    <p class="mb-2">Phone: (555) 123-4567</p>
+                    <p>Email: hello@cozycorner.cafe</p>
+                </div>
+                <div>
+                    <img src="/api/placeholder/600/400" alt="Cafe location" class="w-full h-full object-cover rounded-lg"/>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-4">© 2025 Cozy Corner Café. All rights reserved.</p>
+            <div class="flex justify-center space-x-4">
+                <a href="#" class="hover:text-yellow-200">Facebook</a>
+                <a href="#" class="hover:text-yellow-200">Instagram</a>
+                <a href="#" class="hover:text-yellow-200">Twitter</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Include the plugin script from your Flask app -->
+    <script src="http://127.0.0.1:5000/chatbot-widget.js" data-company-id="9eb69c2f-87d6-4e36-8974-8cfb30367fc5"></script>
+</body>
+</html>
